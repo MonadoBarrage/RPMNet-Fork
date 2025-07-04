@@ -176,7 +176,7 @@ def inference(data_loader, model: torch.nn.Module):
             time_before = time.time()
             pred_transforms, endpoints = model(val_data, _args.num_reg_iter)
             
-            if args.visualize:
+            if _args.visualize:
                 # Visualize only the first sample in the batch
                 pts_src = to_numpy(val_data['points_src'][0, :, :3])
                 pts_ref = to_numpy(val_data['points_ref'][0, :, :3])
