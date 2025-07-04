@@ -161,20 +161,32 @@ def inference(data_loader, model: torch.nn.Module):
             
             
 
+
             pts_src = to_numpy(val_data['points_src'][0, :, :3])
-            pred_T = to_numpy(pred_transforms[-1][0])  # shape: (3, 4)
+            pts_ref = to_numpy(val_data['points_ref'][0, :, :3])
+            pred_T = to_numpy(pred_transforms[-1][0])  # (3, 4)
 
             # Apply transform to source
             pts_src_hom = np.concatenate([pts_src, np.ones((pts_src.shape[0], 1))], axis=1)  # (N, 4)
             transformed_pts_src = (pred_T @ pts_src_hom.T).T  # (N, 3)
 
-            # Save transformed source point cloud as PLY
-            pcd = open3d.geometry.PointCloud()
-            pcd.points = open3d.utility.Vector3dVector(transformed_pts_src)
+            # Create Open3D point clouds
+            pcd_src = open3d.geometry.PointCloud()
+            pcd_ref = open3d.geometry.PointCloud()
+            pcd_src.points = open3d.utility.Vector3dVector(transformed_pts_src)
+            pcd_ref.points = open3d.utility.Vector3dVector(pts_ref)
 
-            save_path = os.path.join(_args.eval_save_path, 'transformed_sample.ply')
-            open3d.io.write_point_cloud(save_path, pcd)
-            _logger.info(f"Saved transformed point cloud to: {save_path}")
+            # Assign colors
+            pcd_src.paint_uniform_color([1, 0, 0])  # Red for transformed source
+            pcd_ref.paint_uniform_color([0, 1, 0])  # Green for reference
+
+            # Combine and save to one .ply file
+            combined_pcd = pcd_src + pcd_ref
+            save_path = os.path.join(_args.eval_save_path, 'aligned_pair.ply')
+            open3d.io.write_point_cloud(save_path, combined_pcd)
+            _logger.info(f"Saved aligned pair point cloud to: {save_path}")
+
+
 
 
             total_time += time.time() - time_before
