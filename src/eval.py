@@ -20,6 +20,7 @@ import pandas as pd
 from scipy import sparse
 from tqdm import tqdm
 import torch
+import argparse
 
 from arguments import rpmnet_eval_arguments
 from common.misc import prepare_logger
@@ -29,6 +30,8 @@ from common.math_torch import se3
 from common.math.so3 import dcm2euler
 from data_loader.datasets import get_test_datasets
 import models.rpmnet
+
+from data_loader.datasets_ply import get_test_dataset_from_ply
 
 
 def compute_metrics(data: Dict, pred_transforms) -> Dict:
@@ -282,7 +285,19 @@ def get_model():
 
 def main():
     # Load data_loader
-    test_dataset = get_test_datasets(_args)
+    
+    # test_dataset = get_test_datasets(_args)
+    args = argparse.Namespace()
+    args.ply_data_path = "data"
+    args.noise_type = "clean"
+    args.rot_mag = 45.0
+    args.trans_mag = 0.5
+    args.num_points = 1024
+    args.partial = [0.7, 0.7]
+
+    test_dataset = get_test_dataset_from_ply(args)
+
+
     test_loader = torch.utils.data.DataLoader(test_dataset,
                                               batch_size=_args.val_batch_size, shuffle=False)
 
