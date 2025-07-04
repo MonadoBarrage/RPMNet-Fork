@@ -33,6 +33,23 @@ import models.rpmnet
 
 from data_loader.datasets_ply import get_test_dataset_from_ply
 
+def visualize_point_clouds(src_pts, ref_pts, transformed_src=None):
+    def to_open3d(pcd_np, color):
+        pcd = open3d.geometry.PointCloud()
+        pcd.points = open3d.utility.Vector3dVector(pcd_np)
+        pcd.paint_uniform_color(color)
+        return pcd
+
+    src_pcd = to_o3d(src_pts, [1, 0, 0])  # Red
+    ref_pcd = to_o3d(ref_pts, [0, 1, 0])  # Green
+
+    geometries = [src_pcd, ref_pcd]
+    if transformed_src is not None:
+        transformed_pcd = to_o3d(transformed_src, [0, 0, 1])  # Blue
+        geometries.append(transformed_pcd)
+
+    open3d.visualization.draw_geometries(geometries)
+
 
 def compute_metrics(data: Dict, pred_transforms) -> Dict:
     """Compute metrics required in the paper
@@ -158,6 +175,19 @@ def inference(data_loader, model: torch.nn.Module):
             dict_all_to_device(val_data, _device)
             time_before = time.time()
             pred_transforms, endpoints = model(val_data, _args.num_reg_iter)
+            
+            if args.visualize:
+                # Visualize only the first sample in the batch
+                pts_src = to_numpy(val_data['points_src'][0, :, :3])
+                pts_ref = to_numpy(val_data['points_ref'][0, :, :3])
+                pred_T = to_numpy(pred_transforms[-1][0])  # shape: (3, 4)
+
+                # Apply transform to source
+                pts_src_hom = np.concatenate([pts_src, np.ones((pts_src.shape[0], 1))], axis=1)  # (N, 4)
+                transformed_pts_src = (pred_T @ pts_src_hom.T).T  # (N, 3)
+
+                visualize_point_clouds(pts_src, pts_ref, transformed_src=transformed_pts_src)
+
             total_time += time.time() - time_before
 
             if _args.method == 'rpmnet':
@@ -294,6 +324,7 @@ def main():
     args.trans_mag = 0.5
     args.num_points = 1024
     args.partial = [0.7, 0.7]
+    args.visualize = True
 
     test_dataset = get_test_dataset_from_ply(args)
 
