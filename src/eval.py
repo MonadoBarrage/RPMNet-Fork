@@ -169,11 +169,11 @@ def inference(data_loader, model: torch.nn.Module):
             transformed_pts_src = (pred_T @ pts_src_hom.T).T  # (N, 3)
 
             # Save transformed source point cloud as PLY
-            pcd = o3d.geometry.PointCloud()
-            pcd.points = o3d.utility.Vector3dVector(transformed_pts_src)
+            pcd = open3d.geometry.PointCloud()
+            pcd.points = open3d.utility.Vector3dVector(transformed_pts_src)
 
             save_path = os.path.join(_args.eval_save_path, 'transformed_sample.ply')
-            o3d.io.write_point_cloud(save_path, pcd)
+            open3d.io.write_point_cloud(save_path, pcd)
             _logger.info(f"Saved transformed point cloud to: {save_path}")
 
 
