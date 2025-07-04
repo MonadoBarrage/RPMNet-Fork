@@ -163,25 +163,30 @@ def inference(data_loader, model: torch.nn.Module):
 
 
             pts_src = to_numpy(val_data['points_src'][0, :, :3])
-        pts_ref = to_numpy(val_data['points_ref'][0, :, :3])
-        pred_T = to_numpy(pred_transforms[-1][0])  # (3, 4)
+            pts_ref = to_numpy(val_data['points_ref'][0, :, :3])
+            pred_T = to_numpy(pred_transforms[-1][0])  # (3, 4)
 
-        # Apply transform to source
-        pts_src_hom = np.concatenate([pts_src, np.ones((pts_src.shape[0], 1))], axis=1)  # (N, 4)
-        transformed_pts_src = (pred_T @ pts_src_hom.T).T  # (N, 3)
+            # Apply transform to source
+            pts_src_hom = np.concatenate([pts_src, np.ones((pts_src.shape[0], 1))], axis=1)  # (N, 4)
+            transformed_pts_src = (pred_T @ pts_src_hom.T).T  # (N, 3)
 
-        # Save transformed source
-        pcd_src = open3d.geometry.PointCloud()
-        pcd_src.points = open3d.utility.Vector3dVector(transformed_pts_src)
-        open3d.io.write_point_cloud(os.path.join(_args.eval_save_path, 'transformed_src.ply'), pcd_src)
+            filename = val_data['filename'][0]  # Assuming batch_size=1
+            name_no_ext = os.path.splitext(filename)[0]
 
-        # Save reference
-        pcd_ref = open3d.geometry.PointCloud()
-        pcd_ref.points = open3d.utility.Vector3dVector(pts_ref)
-        open3d.io.write_point_cloud(os.path.join(_args.eval_save_path, 'reference.ply'), pcd_ref)
+            src_save_path = os.path.join(_args.eval_save_path, f"{name_no_ext}_source.ply")
+            ref_save_path = os.path.join(_args.eval_save_path, f"{name_no_ext}_reference.ply")
 
-        _logger.info("Saved transformed source to: transformed_src.ply")
-        _logger.info("Saved reference cloud to: reference.ply")
+            pcd_src = open3d.geometry.PointCloud()
+            pcd_src.points = open3d.utility.Vector3dVector(transformed_pts_src)
+            open3d.io.write_point_cloud(src_save_path, pcd_src)
+
+            pcd_ref = open3d.geometry.PointCloud()
+            pcd_ref.points = open3d.utility.Vector3dVector(pts_ref)
+            open3d.io.write_point_cloud(ref_save_path, pcd_ref)
+
+            _logger.info(f"Saved transformed source to: {src_save_path}")
+            _logger.info(f"Saved reference cloud to: {ref_save_path}")
+
 
 
 

@@ -46,6 +46,7 @@ class PersonalPLYDataset(Dataset):
 
     def __getitem__(self, idx):
         file_path, label = self.samples[idx]
+        filename = os.path.basename(file_path)  # Get just the filename
         pcd = o3d.io.read_point_cloud(file_path)
         points = np.asarray(pcd.points, dtype=np.float32)
 
@@ -56,13 +57,15 @@ class PersonalPLYDataset(Dataset):
         sample = {
             'points': points,
             'label': np.array(label, dtype=np.int64),
-            'idx': np.array(idx, dtype=np.int32)
+            'idx': np.array(idx, dtype=np.int32),
+            'filename': filename  # Add filename to the sample
         }
 
         if self.transform:
             sample = self.transform(sample)
 
         return sample
+
 
     @property
     def class_names(self):
