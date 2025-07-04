@@ -1,3 +1,5 @@
+This is a simple fork for testing in Google Colab. All considerations and thanks goes to the original developers and researchers behind the RPMNet algorithm.
+
 # RPM-Net: Robust Point Matching using Learned Features
 
 ![pic-network](docs/network-arch.png)
