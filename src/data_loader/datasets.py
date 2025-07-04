@@ -224,7 +224,7 @@ class ModelNetHdf(Dataset):
     def _download_dataset(dataset_path: str):
         os.makedirs(dataset_path, exist_ok=True)
 
-        www = 'https://shapenet.cs.stanford.edu/media/modelnet40_ply_hdf5_2048.zip'
+        www = 'https://huggingface.co/datasets/Msun/modelnet40/resolve/main/modelnet40_ply_hdf5_2048.zip'
         zipfile = os.path.basename(www)
         os.system('wget --no-check-certificate {}'.format(www))
         os.system('unzip {} -d .'.format(zipfile))
