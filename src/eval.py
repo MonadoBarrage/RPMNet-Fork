@@ -161,7 +161,7 @@ def inference(data_loader, model: torch.nn.Module):
             total_time += time.time() - time_before
 
 
-
+            os.makedirs(_args.ply_save_path, exist_ok=True)
             pts_src = to_numpy(val_data['points_src'][0, :, :3])
             pts_ref = to_numpy(val_data['points_ref'][0, :, :3])
             pred_T = to_numpy(pred_transforms[-1][0])  # (3, 4)
