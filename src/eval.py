@@ -161,17 +161,36 @@ def inference(data_loader, model: torch.nn.Module):
             total_time += time.time() - time_before
 
 
+
+
+
             os.makedirs(_args.ply_save_path, exist_ok=True)
+            
             pts_src = to_numpy(val_data['points_src'][0, :, :3])
             pts_ref = to_numpy(val_data['points_ref'][0, :, :3])
-            pred_T = to_numpy(pred_transforms[-1][0])  # (3, 4)
-
-            # Apply transform to source
-            pts_src_hom = np.concatenate([pts_src, np.ones((pts_src.shape[0], 1))], axis=1)  # (N, 4)
-            transformed_pts_src = (pred_T @ pts_src_hom.T).T  # (N, 3)
 
             filename = val_data['filename'][0]  # Assuming batch_size=1
             name_no_ext = os.path.splitext(filename)[0]
+
+            # Save original point clouds BEFORE transformation
+            orig_src_save_path = os.path.join(_args.ply_save_path, f"{name_no_ext}_source_original.ply")
+            orig_ref_save_path = os.path.join(_args.ply_save_path, f"{name_no_ext}_reference_original.ply")
+
+            pcd_src_orig = open3d.geometry.PointCloud()
+            pcd_src_orig.points = open3d.utility.Vector3dVector(pts_src)
+            open3d.io.write_point_cloud(orig_src_save_path, pcd_src_orig)
+
+            pcd_ref_orig = open3d.geometry.PointCloud()
+            pcd_ref_orig.points = open3d.utility.Vector3dVector(pts_ref)
+            open3d.io.write_point_cloud(orig_ref_save_path, pcd_ref_orig)
+
+            _logger.info(f"Saved original source to: {orig_src_save_path}")
+            _logger.info(f"Saved original reference to: {orig_ref_save_path}")
+
+            # Apply transform and save transformed source
+            pred_T = to_numpy(pred_transforms[-1][0])  # (3, 4)
+            pts_src_hom = np.concatenate([pts_src, np.ones((pts_src.shape[0], 1))], axis=1)
+            transformed_pts_src = (pred_T @ pts_src_hom.T).T
 
             src_save_path = os.path.join(_args.ply_save_path, f"{name_no_ext}_source.ply")
             ref_save_path = os.path.join(_args.ply_save_path, f"{name_no_ext}_reference.ply")
@@ -186,7 +205,6 @@ def inference(data_loader, model: torch.nn.Module):
 
             _logger.info(f"Saved transformed source to: {src_save_path}")
             _logger.info(f"Saved reference cloud to: {ref_save_path}")
-
 
 
 
