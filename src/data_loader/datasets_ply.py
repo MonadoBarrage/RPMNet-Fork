@@ -57,8 +57,8 @@ class PersonalPLYDataset(Dataset):
         sample = {
             'points': points,
             'label': np.array(label, dtype=np.int64),
-            'idx': np.array(idx, dtype=np.int32)
-            'filename':
+            'idx': np.array(idx, dtype=np.int32),
+            'filename': filename
         }
 
         if self.transform:
