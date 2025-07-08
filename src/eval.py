@@ -298,18 +298,7 @@ def save_eval_data(pred_transforms, endpoints, metrics, summary_metrics, save_pa
         else:
             with open(os.path.join(save_path, '{}.pickle'.format(k)), 'wb') as fid:
                 pickle.dump(endpoints[k], fid)
-
-    # Save metrics: Write each iteration to a different worksheet.
-    writer = pd.ExcelWriter(os.path.join(save_path, 'metrics.xlsx'))
-    for i_iter in range(len(metrics)):
-        metrics[i_iter]['r_rmse'] = np.sqrt(metrics[i_iter]['r_mse'])
-        metrics[i_iter]['t_rmse'] = np.sqrt(metrics[i_iter]['t_mse'])
-        metrics[i_iter].pop('r_mse')
-        metrics[i_iter].pop('t_mse')
-        metrics_df = pd.DataFrame.from_dict(metrics[i_iter])
-        metrics_df.to_excel(writer, sheet_name='Iter_{}'.format(i_iter+1))
-    writer.close()
-
+    
     # Save summary metrics
     summary_metrics_float = {k: float(summary_metrics[k]) for k in summary_metrics}
     with open(os.path.join(save_path, 'summary_metrics.json'), 'w') as json_out:

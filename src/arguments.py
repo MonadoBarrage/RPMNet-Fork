@@ -103,6 +103,8 @@ def rpmnet_eval_arguments():
                         help='Output data_loader to save evaluation results')
     parser.add_argument('--ply_save_path', type=str, default='../ply_results',
                         help='Output ply files to save evaluation results')
+    parser.add_argument('--ply_file', type=str,
+                        help='Ply file to perform registration on')
 
     parser.description = 'RPMNet evaluation'
     return parser
