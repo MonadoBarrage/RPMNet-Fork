@@ -329,7 +329,7 @@ def main():
     args.noise_type = "clean"
     args.rot_mag = 45.0
     args.trans_mag = 0.5
-    args.num_points = 1024
+    # args.num_points = 1024
     args.partial = [0.7, 0.7]
 
     test_dataset = get_test_dataset_from_ply(args)
