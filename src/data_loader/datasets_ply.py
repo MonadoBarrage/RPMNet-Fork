@@ -6,7 +6,7 @@ import torchvision
 
 import data_loader.transforms as Transforms  # Adjust to your project
 
-from data_loader.datasets import get_transforms
+from data_loader.datasets import get_transforms_no_transform
 
 class PersonalPLYDataset(Dataset):
     def __init__(self, data_dir: str, transform=None):
@@ -44,28 +44,48 @@ class PersonalPLYDataset(Dataset):
     def __len__(self):
         return len(self.samples)
 
+   class PersonalPLYDataset(Dataset):
+    def __init__(self, data_dir: str, transform=None):
+        self.data_dir = data_dir
+        self.transform = transform
+        self.samples = []
+        
+        # Expect pairs: source_*.ply and reference_*.ply
+        ply_files = [f for f in os.listdir(data_dir) if f.endswith('.ply')]
+        source_files = [f for f in ply_files if f.startswith('source_')]
+        
+        for src_file in source_files:
+            ref_file = src_file.replace('source_', 'reference_')
+            if ref_file in ply_files:
+                self.samples.append((
+                    os.path.join(data_dir, src_file),
+                    os.path.join(data_dir, ref_file)
+                ))
+
     def __getitem__(self, idx):
-        file_path, label = self.samples[idx]
-        filename = os.path.basename(file_path)  # Get just the filename
-        pcd = o3d.io.read_point_cloud(file_path)
-        points = np.asarray(pcd.points, dtype=np.float32)
-
-        # Add dummy normals if none present
-        normals = np.zeros_like(points, dtype=np.float32)
-        points = np.concatenate([points, normals], axis=1)  # Shape: (N, 6)
-
+        src_path, ref_path = self.samples[idx]
+        
+        # Load both point clouds
+        pcd_src = o3d.io.read_point_cloud(src_path)
+        pcd_ref = o3d.io.read_point_cloud(ref_path)
+        
+        points_src = np.asarray(pcd_src.points, dtype=np.float32)
+        points_ref = np.asarray(pcd_ref.points, dtype=np.float32)
+        
+        # Add dummy normals
+        normals_src = np.zeros_like(points_src)
+        normals_ref = np.zeros_like(points_ref)
+        
         sample = {
-            'points': points,
-            'label': np.array(label, dtype=np.int64),
-            'idx': np.array(idx, dtype=np.int32),
-            'filename': filename,
-            
+            'points_src': np.concatenate([points_src, normals_src], axis=1),
+            'points_ref': np.concatenate([points_ref, normals_ref], axis=1),
+            'points_raw': np.concatenate([points_src, normals_src], axis=1),
+            'transform_gt': np.eye(3, 4, dtype=np.float32),  # Identity since no known transform
+            'filename': os.path.basename(src_path)
         }
-
-        if self.transform:
-            sample = self.transform(sample)
-
+        
         return sample
+
 
     @property
     def class_names(self):
@@ -77,30 +97,8 @@ class PersonalPLYDataset(Dataset):
 
 
 def get_test_dataset_from_ply(args):
-    """
-    Creates test dataset from PLY files in labeled subfolders.
-
-    Args:
-        args: argparse.Namespace with fields:
-            - ply_data_path
-            - noise_type
-            - rot_mag
-            - trans_mag
-            - num_points
-            - partial
-
-    Returns:
-        Dataset instance
-    """
-    _, test_transforms = get_transforms(
-        noise_type=args.noise_type,
-        rot_mag=args.rot_mag,
-        trans_mag=args.trans_mag,
-        num_points=args.num_points,
-        partial_p_keep=args.partial
-    )
-
+    test_transforms, _ = get_transforms_no_transform()
     test_transforms = torchvision.transforms.Compose(test_transforms)
-
     dataset = PersonalPLYDataset(data_dir=args.ply_data_path, transform=test_transforms)
     return dataset
+

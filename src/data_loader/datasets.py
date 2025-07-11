@@ -63,6 +63,14 @@ def get_test_datasets(args: argparse.Namespace):
 
     return test_data
 
+def get_transforms_no_transform():
+    """Transforms that don't apply SE3 transformations"""
+    transforms = [
+        Transforms.Resampler(1024),  # or your desired num_points
+        Transforms.ShufflePoints()
+    ]
+    return transforms, transforms
+
 
 def get_transforms(noise_type: str,
                    rot_mag: float = 45.0, trans_mag: float = 0.5,
