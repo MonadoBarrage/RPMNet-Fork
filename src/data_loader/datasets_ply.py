@@ -10,42 +10,6 @@ from data_loader.datasets import get_transforms_no_transform
 
 class PersonalPLYDataset(Dataset):
     def __init__(self, data_dir: str, transform=None):
-        """
-        Loads PLY files from subfolders and assigns integer labels based on folder name.
-
-        Folder structure:
-            data_dir/
-                classA/
-                    *.ply
-                classB/
-                    *.ply
-
-        Args:
-            data_dir (str): Path to root directory containing class folders.
-            transform (callable, optional): Transformations to apply to each sample.
-        """
-        self.data_dir = data_dir
-        self.transform = transform
-
-        self.samples = []
-        self.class_to_idx = {}
-        self.classes = sorted([d for d in os.listdir(data_dir) if os.path.isdir(os.path.join(data_dir, d))])
-
-        for idx, class_name in enumerate(self.classes):
-            self.class_to_idx[class_name] = idx
-            class_dir = os.path.join(data_dir, class_name)
-            ply_files = [f for f in os.listdir(class_dir) if f.endswith('.ply')]
-            for fname in ply_files:
-                fpath = os.path.join(class_dir, fname)
-                self.samples.append((fpath, idx))
-
-        self.samples.sort()  # For consistency
-
-    def __len__(self):
-        return len(self.samples)
-
-   class PersonalPLYDataset(Dataset):
-    def __init__(self, data_dir: str, transform=None):
         self.data_dir = data_dir
         self.transform = transform
         self.samples = []
@@ -85,6 +49,7 @@ class PersonalPLYDataset(Dataset):
         }
         
         return sample
+   
 
 
     @property
