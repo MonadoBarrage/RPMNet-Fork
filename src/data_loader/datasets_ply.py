@@ -48,7 +48,7 @@ class PersonalPLYDataset(Dataset):
             'filename': os.path.basename(src_path)
         }
         
-        return sample
+        return len(sample)
    
 
 
